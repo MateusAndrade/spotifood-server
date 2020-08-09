@@ -1,8 +1,12 @@
+const { spotifyApi } = require("./provider");
+
 const validateAuth = (req, res, next) => {
   try {
-    const { Authorization: authorization } = req.headers;
+    const { authorization } = req.headers;
 
     if (!authorization) throw new Error("Invalid credentials"); 
+
+    spotifyApi.setAccessToken(authorization);
 
     next();
   } catch (error) {

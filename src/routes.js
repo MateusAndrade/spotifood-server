@@ -12,11 +12,6 @@ router.get("/", (req, res) => {
   res.status(200).send(`Server Up 🚀`);
 });
 
-router.get("/oauth2", (req, res) => {
-  const { code } = req.query;
-  res.send({ code });
-}); 
-
 router.get("/login", (req, res) => {
   const htmlLogin = spotifyApi.createAuthorizeURL(scopes);
 
@@ -27,21 +22,50 @@ router.get("/error", (req, res) => {
   res.status(500);
 });
 
-
 router.get('/callback', async (req, res) => {
   const { code } = req.query;
 
   try {
-    const data = await spotifyApi.authorizationCodeGrant(code)
+    const data = await spotifyApi.authorizationCodeGrant(code);
 
-    const { access_token, refresh_token } = data.body;
-
-    spotifyApi.setAccessToken(access_token);
-    spotifyApi.setRefreshToken(refresh_token);
-
-    res.redirect(redirectUri);
+    if (data) {
+      res.redirect(redirectUri);
+    }
   } catch(err) {
     res.redirect(`/error?message=${error.message}`);
+  }
+});
+
+router.get("/oauth2", async (req, res) => {
+  const { code } = req.query;
+
+  const data = await spotifyApi.authorizationCodeGrant(code);
+
+  const { access_token, refresh_token } = data.body;
+
+  res.send({ access_token, refresh_token });
+}); 
+
+router.get("/oauth2/refresh", authMiddleware, async (req, res) => {
+  try { 
+    const data = await spotifyApi.refreshAccessToken();
+
+    console.log("data", data);
+  
+    const { access_token, refresh_token } = data.body;
+  
+    res.send({ access_token, refresh_token });    
+  } catch (error) {
+    res.status(500).send({ message: error.message })
+  }
+}); 
+
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const { body } = await spotifyApi.getMe();
+    res.status(200).send(body);
+  } catch (err) {
+    res.status(400).send(err)
   }
 });
 
