@@ -6,11 +6,13 @@ const authMiddleware = require("./middleware");
 
 const { spotifyApi , scopes } = require("./provider");
 
+const { redirectUri } = require("./config");
+
 router.get("/", (req, res) => {
-  res.render("index.html", { title: "Spotify API" });
+  res.status(200).send(`Server Up 🚀`);
 });
 
-router.get("/home", (req, res) => {
+router.get("/oauth2", (req, res) => {
   const { code } = req.query;
   res.send({ code });
 }); 
@@ -20,6 +22,11 @@ router.get("/login", (req, res) => {
 
   res.send(`${htmlLogin}&show_dialog=true`);
 });
+
+router.get("/error", (req, res) => {
+  res.status(500);
+});
+
 
 router.get('/callback', async (req, res) => {
   const { code } = req.query;
@@ -32,9 +39,9 @@ router.get('/callback', async (req, res) => {
     spotifyApi.setAccessToken(access_token);
     spotifyApi.setRefreshToken(refresh_token);
 
-    res.redirect('http://localhost:3001/playlists');
+    res.redirect(redirectUri);
   } catch(err) {
-    res.redirect('/#/error/invalid token');
+    res.redirect(`/error?message=${error.message}`);
   }
 });
 
