@@ -1,5 +1,7 @@
 const express = require("express");
 
+const axios = require("axios");
+
 const router = express.Router();
 
 const authMiddleware = require("./middleware");
@@ -58,10 +60,12 @@ router.get("/oauth2/refresh", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/me", authMiddleware, async (req, res) => {
+router.get("/filters", async (req, res) => {
   try {
-    const { body } = await spotifyApi.getMe();
-    res.status(200).send(body);
+    const data = await axios.get(
+      "http://www.mocky.io/v2/5a25fade2e0000213aa90776"
+    );
+    res.status(200).send(data.data);
   } catch (err) {
     res.status(400).send(err);
   }
